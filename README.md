@@ -91,19 +91,14 @@ python experiments/synthetic.py --dataset SinFreq --model chronos
 python experiments/synthetic.py --dataset StepMean --model chronos
 ```
 
-### UCI Electricity (Table 3)
-```bash
-python experiments/electricity.py --model chronos --num_series 20
-python experiments/electricity.py --model moirai --num_series 20
-```
 
-### Financial Crisis (Table 4)
+### Financial Crisis (Table 3)
 ```bash
 python experiments/finance.py --dataset sp500 --model chronos
 python experiments/finance.py --dataset bitcoin --model patchtst
 ```
 
-### Ablation Studies (Tables 5-7)
+### Ablation Studies (Tables 4-6)
 ```bash
 # Variance vs. Credal comparison
 python experiments/ablation.py --study variance_vs_credal
