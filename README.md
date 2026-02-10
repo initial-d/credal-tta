@@ -121,12 +121,7 @@ python experiments/ablation.py --study threshold_sensitivity
 ## Citation
 
 ```bibtex
-@article{du2025credal,
-  title={Breaking Context Inertia: A Neuro-Symbolic Framework for Test-Time Adaptation of Time Series Foundation Models via Credal Set Theory},
-  author={Du, Yimin and Wu, Guixing},
-  journal={Knowledge-Based Systems},
-  year={2025}
-}
+
 ```
 
 ## License
@@ -135,4 +130,4 @@ MIT License
 
 ## Contact
 
-For questions or issues, please open a GitHub issue or contact sa613403@mail.ustc.edu.cn
+For questions or issues, please open a GitHub issue or contact authors
