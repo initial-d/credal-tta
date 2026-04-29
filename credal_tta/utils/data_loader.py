@@ -239,6 +239,52 @@ def load_bitcoin_crash(
         return np.concatenate([pre, crash, post]), 1200
 
 
+def load_noaa_weather(
+    station_id: int = 0,
+    data_path: str = "data/noaa_weather.npy"
+) -> Tuple[np.ndarray, int]:
+    """
+    Load NOAA Weather data - Winter Storm Uri (R3)
+    
+    Returns:
+        time_series: Hourly temperature
+        storm_onset: Feb 15, 2021 onset point
+    """
+    try:
+        data = np.load(data_path)
+        return data[station_id], 1080  # ~45 days * 24h
+    except FileNotFoundError:
+        print(f"WARNING: {data_path} not found. Generating synthetic storm.")
+        T = 2400
+        pre_storm = np.random.normal(10, 2, 1080)
+        storm = np.linspace(10, -15, 48)
+        post_storm = np.random.normal(-5, 5, T - 1128)
+        return np.concatenate([pre_storm, storm, post_storm]), 1080
+
+
+def load_ettm1(
+    data_path: str = "data/ETTm1.csv"
+) -> Tuple[np.ndarray, int]:
+    """
+    Load ETTm1 energy transformer data (R3)
+    
+    Returns:
+        time_series: 15-min oil temperature
+        anomaly_point: 2017-07-18 anomaly
+    """
+    try:
+        import pandas as pd
+        df = pd.read_csv(data_path)
+        oil_temp = df['OT'].values
+        return oil_temp, 20000  # Approximate anomaly location
+    except (FileNotFoundError, ImportError):
+        print(f"WARNING: {data_path} not found. Generating synthetic anomaly.")
+        T = 40000
+        normal = np.random.normal(50, 2, 20000)
+        anomaly = np.random.normal(62, 5, T - 20000)
+        return np.concatenate([normal, anomaly]), 20000
+
+
 # ==================== Dataset Registry ====================
 
 DATASETS = {
@@ -246,6 +292,12 @@ DATASETS = {
     'StepMean': generate_step_mean_shift,
     'GradualDrift': generate_gradual_drift,
 }
+
+
+# Convenience aliases expected by validation
+load_sp500 = load_sp500_crisis
+load_bitcoin = load_bitcoin_crash
+load_electricity = load_uci_electricity
 
 
 def get_dataset(name: str, **kwargs) -> Tuple[np.ndarray, int]:

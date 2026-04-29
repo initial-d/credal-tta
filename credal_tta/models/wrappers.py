@@ -3,7 +3,12 @@ TSFM Model Wrappers - Architecture-Agnostic Interfaces
 """
 
 import numpy as np
-import torch
+try:
+    import torch
+    _default_device = "cuda" if torch.cuda.is_available() else "cpu"
+except ImportError:
+    torch = None
+    _default_device = "cpu"
 from typing import Optional
 
 
@@ -33,7 +38,7 @@ class ChronosWrapper(TSFMWrapper):
     def __init__(
         self,
         model_name: str = "amazon/chronos-t5-base",
-        device: str = "cuda" if torch.cuda.is_available() else "cpu"
+        device: str = _default_device
     ):
         """
         Args:
@@ -102,7 +107,7 @@ class MoiraiWrapper(TSFMWrapper):
     def __init__(
         self,
         model_name: str = "Salesforce/moirai-1.0-R-small",
-        device: str = "cuda" if torch.cuda.is_available() else "cpu"
+        device: str = _default_device
     ):
         try:
             from uni2ts.model.moirai import MoiraiForecast
@@ -151,7 +156,7 @@ class PatchTSTWrapper(TSFMWrapper):
         seq_len: int = 512,
         patch_len: int = 16,
         stride: int = 8,
-        device: str = "cuda" if torch.cuda.is_available() else "cpu"
+        device: str = _default_device
     ):
         self.seq_len = seq_len
         self.patch_len = patch_len
