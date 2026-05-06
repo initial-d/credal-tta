@@ -109,7 +109,7 @@ def run_electricity_experiment(
         print(f"\nProcessing customer {series_id+1}/{num_series}...")
         
         # Load data
-        data = load_uci_electricity(customer_id=series_id)
+        data, _ = load_uci_electricity(customer_id=series_id)
         
         # Use subset for faster experiments
         data = data[:5000]  # ~200 days

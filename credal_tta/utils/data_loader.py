@@ -143,7 +143,7 @@ def generate_gradual_drift(
 def load_uci_electricity(
     customer_id: int = 0,
     data_path: str = "data/electricity.npy"
-) -> np.ndarray:
+) -> Tuple[np.ndarray, int]:
     """
     Load UCI Electricity dataset (Section 5.2 in paper)
     
@@ -156,10 +156,12 @@ def load_uci_electricity(
         
     Returns:
         time_series: Electricity consumption (hourly)
+        shift_point: Estimated regime shift location (0 if unknown)
     """
     try:
         data = np.load(data_path)
-        return data[customer_id]
+        # Return data with unknown shift point
+        return data[customer_id], 0
     except FileNotFoundError:
         print(f"WARNING: {data_path} not found. Generating synthetic substitute.")
         # Generate synthetic data with seasonal patterns
@@ -169,7 +171,7 @@ def load_uci_electricity(
         weekly = 0.5 * np.sin(2 * np.pi * t / (24 * 7))
         trend = 0.0001 * t
         noise = np.random.normal(0, 0.2, T)
-        return 5 + daily + weekly + trend + noise
+        return 5 + daily + weekly + trend + noise, 0
 
 
 def load_sp500_crisis(
