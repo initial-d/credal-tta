@@ -146,32 +146,57 @@ def load_uci_electricity(
 ) -> Tuple[np.ndarray, int]:
     """
     Load UCI Electricity dataset (Section 5.2 in paper)
-    
+
     Dataset: Hourly electricity consumption from 370 customers
     Source: https://archive.ics.uci.edu/ml/datasets/ElectricityLoadDiagrams20112014
-    
+
+    Supported formats (auto-detected):
+        - .npy : preprocessed array of shape (num_customers, T)
+        - .csv / .txt : raw UCI file (semicolon-separated, comma decimals,
+                        first column = timestamp, remaining = customers).
+                        We resample 15-min -> hourly by mean.
+
     Args:
         customer_id: Customer index (0-369)
-        data_path: Path to preprocessed .npy file
-        
+        data_path: Path to .npy or raw UCI file
+
     Returns:
         time_series: Electricity consumption (hourly)
-        shift_point: Estimated regime shift location (0 if unknown)
+        shift_point: 0 (unknown). Real shift points should be detected online
+                     by Credal-TTA itself; do NOT use this for RT evaluation
+                     unless you provide ground-truth annotations.
     """
-    try:
-        data = np.load(data_path)
-        # Return data with unknown shift point
-        return data[customer_id], 0
-    except FileNotFoundError:
-        print(f"WARNING: {data_path} not found. Generating synthetic substitute.")
-        # Generate synthetic data with seasonal patterns
-        T = 26304  # ~3 years hourly
-        t = np.arange(T)
-        daily = np.sin(2 * np.pi * t / 24)
-        weekly = 0.5 * np.sin(2 * np.pi * t / (24 * 7))
-        trend = 0.0001 * t
-        noise = np.random.normal(0, 0.2, T)
-        return 5 + daily + weekly + trend + noise, 0
+    import os
+    if os.path.exists(data_path):
+        try:
+            if data_path.endswith(".npy"):
+                data = np.load(data_path)
+                series = data[customer_id]
+            else:
+                import pandas as pd
+                # UCI raw: semicolon-separated, comma as decimal
+                df = pd.read_csv(
+                    data_path, sep=";", decimal=",", index_col=0,
+                    parse_dates=True, low_memory=False
+                )
+                # Resample 15-min -> hourly
+                df_hourly = df.resample("1h").mean()
+                col = df_hourly.columns[customer_id]
+                series = df_hourly[col].values.astype(np.float32)
+                # Drop leading NaNs (some customers start mid-period)
+                series = series[~np.isnan(series)]
+            return series, 0
+        except Exception as e:
+            print(f"WARNING: failed to load {data_path} ({e}); using synthetic.")
+
+    print(f"WARNING: {data_path} not found. Generating synthetic substitute.")
+    T = 26304  # ~3 years hourly
+    t = np.arange(T)
+    daily = np.sin(2 * np.pi * t / 24)
+    weekly = 0.5 * np.sin(2 * np.pi * t / (24 * 7))
+    trend = 0.0001 * t
+    noise = np.random.normal(0, 0.2, T)
+    return 5 + daily + weekly + trend + noise, 0
 
 
 def load_sp500_crisis(
